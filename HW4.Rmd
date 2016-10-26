@@ -1,0 +1,203 @@
+---
+title: "HW4"
+author: "Tinashe M. Tapera"
+date: "24 October 2016"
+output: html_document
+---
+
+```{r libraries, include = FALSE}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(tidyr)
+set.seed(1)
+```
+
+#Introduction
+In this homework assignment, we investigate standard scores, the normal distribution, and hypothesis testing.
+
+## Problem 1
+>Assuming that the following data represent a population of $X$ with $\mu = 4$ and $\sigma = 1.58$
+```{r}
+X = c(1,2,2,3,3,3,4,4,4,4,5,5,5,6,6,7)
+mu = 4
+sigma = 1.58
+```
+
+>plot the ditribution as given
+
+```{r, echo=FALSE, cache=TRUE}
+ggplot(data.frame(x = X), aes(x = x))+
+  geom_histogram(binwidth = 0.5, fill = "blue")+
+  scale_x_continuous(breaks = )
+  ggtitle("Distribution of X")
+```
+
+>Convert the distribution to $X-\mu$
+
+```{r}
+X = data.frame(X)
+X = mutate(X, x2 = X-mu)
+```
+
+```{r, echo=FALSE, cache = TRUE}
+ggplot(data = X, aes(x = X))+
+  geom_histogram(binwidth = 0.5, fill = "blue", alpha = 0.1)+
+  geom_histogram(data = X, aes(x = x2), binwidth = 0.5, fill = "red", alpha = 0.9)+
+  ggtitle("Distribution of X-mu (red)")
+```
+$X-\mu$ values = `r X$x2`
+
+>Convert the distribution to $z$
+
+```{r}
+X = mutate(X, x3 = x2/sigma)
+```
+
+```{r, echo=FALSE, cache=TRUE}
+ggplot(data = X, aes(x = X))+
+  geom_histogram(binwidth = 0.5, fill = "blue", alpha = 0.1)+
+  geom_histogram(data = X, aes(x = x2), binwidth = 0.5, fill = "red", alpha = 0.1)+
+  geom_histogram(data = X, aes(x = x3), binwidth = 0.2, fill = "green", alpha = 0.9)+
+  ggtitle("Distribution of z (green)")
+```
+$\frac{x-\mu}{\sigma}$ values = `r round(X$x3, 4)`
+
+Notice how overlaying the plots shows us how standard scores work: first, we move (transform) the data in respect to some normal position, and then spread it so that it takes on the bell curve shape that makes it relatable to other data sets.
+
+# Problem 2
+
+>Phyllis obtained a score of 76 on a statistics test and a score of 81 on an English test. The mean was 72 and the standard deviation was 2 for the statistics test, while the mean was 75 and the standard deviation was 4 for the English test. On which test did Phyllis do better relative to the other students in each class?
+
+To answer this question, we can simulate and visualise the data.
+
+```{r include = TRUE}
+scoreEnglish = 81
+muEnglish = 75
+sigmaEnglish = 4
+
+scoreStat = 76
+muStat = 72
+sigmaStat = 4
+
+#estimate 50 students in the class, with normally distributed scores
+
+englishClass = rnorm(50, mean = muEnglish, sd = sigmaEnglish)
+statClass = rnorm(50, mean = muStat, sd = sigmaStat)
+classes = data.frame(cbind(englishClass,statClass))
+```
+
+```{r, echo=FALSE}
+ggplot(data = classes, aes(x = englishClass))+
+  geom_histogram(binwidth = 0.3, fill = "blue", alpha = 0.5)+
+  ggtitle("Distribution of English Test Scores")+
+  xlab("Score")+
+  geom_vline(xintercept = scoreEnglish, size=1.5)+
+  geom_label(aes(x = scoreEnglish, y = 3, label = c("Phyllis' Score")))
+
+ggplot(data = classes, aes(x = statClass))+
+  geom_histogram(binwidth = 0.3, fill = "red", alpha = 0.5)+
+  ggtitle("Distribution of Statistics Test Scores")+
+  xlab("Score")+
+  geom_vline(xintercept = scoreStat, size=1.5)+
+  geom_label(aes(x = scoreStat, y = 3.2, label = c("Phyllis' Score")))
+```
+
+From these distributions, it is difficult to tell in which score set Phyllis did better. In this case, her English test score is far more to the right, and thus higher, than her statistics score. However, we used the rnorm() function to create random students' scores, and that pretty much guarantees that we cannot rely on this visual interpretation. We can instead work it out mathematically by calculating standard scores.
+
+$z = \frac{x-\mu}{\sigma}$
+
+```{r}
+standardEnglish = (scoreEnglish-muEnglish)/sigmaEnglish
+standardStat = (scoreStat-muStat)/sigmaStat
+```
+
+Phyllis English $z$ score = `r standardEnglish`
+
+Phyllis' Statistics $z$ score = `r standardStat`
+
+**In this case, we can confirm that Phyllis' English score is comparatively better than her Statistics score.**
+
+# Problem 3
+
+>In the population, scores of students on Test $X$ had a mean $\mu = 74$ and a standard deviation $\sigma = 8$. A random sample of 90 students who took the exam is taken. Round the standard deviation of the sample mean score $\bar{x}$ to four decimal places. Using that rounded number, what is the probability that the mean score $\bar{x}$ of these students is 75 or higher?
+
+The difference between the population parameter and sample statistic is that the population contains all the data that you could possibly be interested in for that particular purpose; the sample has a subset of the population's data that, at some point, may be compared to the rest of the data. If this is the case, calculating the sample standard deviation corrects for the number of measurements and ensures that we are comparing values from a sample.
+
+Finding the probability of a score being higher than that of a population is a *hypothesis test*, meaning that we must use a test statistic and compare it to a population distribution.
+
+In order to find the sample mean (in other words, *the standard error of the mean*), we use the formula:
+
+$$\sigma _{\overline {x}}=SE_{\overline {x}}=\dfrac {\sigma } {\sqrt {n}}$$
+
+```{r}
+sigma_xbar = 8/sqrt(90)
+sigma_xbar = round(sigma_xbar,4)
+```
+
+$\sigma _{\overline {x}}=$ `r sigma_xbar`
+
+To find the probability of a mean score being above or below a value, we find the test statistic ($z$ score) of this particular value in relation to the sample mean, using the following:
+
+$z _{stat}=\dfrac {\overline {x} - \mu _{0}} {SE_{\overline {x}}}$
+(sample mean - population mean)/standard error of mean
+```{r}
+z_score=(75-74)/sigma_xbar
+```
+
+And then use this statistic to compare to the p-value (the critical value that indicates our sample distribution is most probably different from our population distribution):
+
+Taken from the normal distribution table...
+Critical value at z = 1.1858: **.1196**
+
+That is to say, there is a .1196 chance that this test statistic is not part of the population distribution. **The probability that the mean score of these students in the question is 75 or higher, is .1196**
+
+# Problem 4
+>In the population, Weschler Adult Intelligence Scores follow a normal distribution with mean $\mu=100$ and standard deviation $\sigma=15$. A simple random sample of 9 students who took he test is taken. Their measure scores are 116, 128, 125, 119, 89, 99, 105, 116, and 118. Does this sample mean provide stastically reliable evidence that the population mean $\mu$ is greater than 100? State the null and research hypothesis.
+
+This is similar to the previous problem. In this case, we are given a population mean and standard deviation, a sample size, and each sample's mean score. What we want to find is whether or not the population mean is greater than 100.
+
+$H _{0}: \mu=100$
+
+$H _{A}: \mu>100$
+
+We will set the significance level $\alpha$ to .05; this means that for a given test statistic, the probability of it representing a population mean higher than 100 must be less than .05 to fail to reject the null hypothesis.
+
+The 9 students, each with their individual scores, comprise a sample mean $\overline {x}$ of `r round((116+128+125+119+89+99+105+116+118)/9,4)`. With this information, and a random sample of 9 and the population standard deviation of 15, we can compute the standard error of the mean, and a test statistic to compare against.
+
+Essentially, we want to find out if, for a p-value of .05, and the corresponding $z$ score, that $\mu>100$. 
+
+$z$ score for p-value(.05) = 1.64 (approximately)
+
+Using algebra, since we know that $z$ = 1.64, then we can solve for $\mu$ in the formula:
+$z _{stat}=\dfrac {\overline {x} - \mu _{0}} {SE_{\overline {x}}}$
+
+This is equivalent to:
+$\mu _{0}=\overline {x} - SE_{\overline {x}}\cdot z$
+```{r}
+mean = (116+128+125+119+89+99+105+116+118)/9
+se = 15/sqrt(9)
+mu = mean-(se*1.64)
+```
+**For the given p-value, $\mu$ = `r round(mu,1)`. This is statistically reliable evidence that the population mean is greater than 100.**
+
+#Problem 5
+
+>It is known that if people are asked to make an estimate of something, for example, "How tall is the University chapel?" the avergae guess of a group of people is more accurate than an individual's guess. Vul and Pashler (2008) wondered if the same held for multiple guesses made by the same person. They asked people to make guesses about known facts; for example, "What percentage of the world's airports is in the United States?" Three weeks later the researchers asked the same people the same questions and averaged each person's responses over the two sessions. They asked whether this average was more accurate than the first guess by itself. 
+
+We can formalise this by saying that there are two groups; the pre- and post- group, where the condition is that the post group is "exposed" to time.
+
+>a) What are the null and alternative hypotheses?
+
+$H _{0}: \mu _{post} = \mu _{pre}$ 
+
+$H _{A}: \mu _{post} > \mu _{pre}$
+
+>b) What would be a Type I and Type II error in this case?
+Type I error occurs when $H _{0}$ is true; it would be falsely rejecting the null hypothesis, and concluding that the post-3 week mean is greater than the pre-3 week mean.
+
+Type II error occurs when $H _{0}$ is false; it would be falsely accepting (or, not rejecting) the alternative hypothesis, and concluding that the pre-3 week mean is the same as the post-3 week mean.
+
+>c) Would you be inclined to use a one-tailed or two-tailed test in this case?
+
+The most appropriate test would be one tailed, as we are testing for a change in one direction: we want to see if the mean *improves* over time, and are not interested in the possibility of it decreasing.
