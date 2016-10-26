@@ -1,0 +1,106 @@
+---
+title: "PSY 380 Homework"
+author: "Tinashe M. Tapera"
+date: "11 October 2016"
+output: word_document
+---
+```{r include = FALSE}
+library(dplyr)
+library(knitr)
+```
+
+#Introduction
+For this homework assignment, we review a few simple statistical concepts useful for psychometric testing and assessment.
+
+```{r}
+# the dataset:
+
+ data = data.frame(Exam = c(70,79,82,96,85,86,72,92,76,84,81,82,90,95,89), Attendance = c(28,23,27,30,29,30,17,28,26,30,14,24,28,30,27), row.names = c("Brian", "Stephen", "Andrew","Lindsay", "Carrie", "Sean", "Jackson", "Julie", "Michael", "Tony", "Paul", "Catherine", "Ryan", "Lauren", "Johnny"))
+
+kable(data)
+```
+
+##Part1
+1. Create a frequency distribution of scores for the final exam test data listed in the example.
+2. Calculate the mean, median, and mode for the test data. Are the data normally distributed? Explain how you know. Based on this information, which measure of central tendency best represents the test data (and why)? 
+3. Calculate the range, variance, and standard deviation for the test score data set.
+4. Calculate a z-score and a T score for each student???s performance on the final exam. How does the conversion of the raw scores into standard scores help you communicate to each student his or her individual performance on the exam? 
+
+```{r}
+# 1. a frequency distribution
+table(data$Exam) %>%
+  print()
+# 2. mean
+mean(data$Exam) %>%
+  print()
+# or by hand
+sum = 70+79+82+96+85+86+72+92+76+84+81+82+90+95+89
+xbar = sum/15
+print(xbar)
+
+# median (the middle value)
+sorted = sort(data$Exam)
+median = sorted[8]
+print(median)
+
+# mode (the most common value)
+table(data$Exam) %>%
+  data.frame() %>%
+  top_n(.,1,Freq)
+```
+
+The data may be normally distributed, but the small sample size makes it hard to tell. In the sorted array of data, we can see one value for each data point except the mode, which is right in the middle; given this, if the data were imputed it may create a normal distribution.
+The mean and the median are also very close to the mode, so we can assume that the data would be normally distributed. I would use the median as the best measure of central tendency.
+
+```{r}
+# 3. range
+print(sorted[15]-sorted[1])
+
+# variance
+var(data$Exam)
+# or by hand
+err = data$Exam - xbar
+sq.err = err^2
+sigma = sum(sq.err)
+var = sigma/(15-1) # -1 since we use sample variance
+print(var)
+
+# standard deviation
+sd(data$Exam)
+# or by hand
+sd = sqrt(var)
+print(sd)
+```
+
+The difference in sample or population parameters is a matter of using n or n-1 and is dependant on the analysis. In small samples, it's best to use the sample measures (n-1).
+
+```{r}
+# 4. z scores
+Exam_z = (data$Exam - xbar)/sd
+data = cbind(data, Exam_z)
+
+# t scores (t = 10z + 50)
+data = mutate(data, Exam_t = (10*Exam_z) + 50)
+rownames(data) = c("Brian", "Stephen", "Andrew","Lindsay", "Carrie", "Sean", "Jackson", "Julie", "Michael", "Tony", "Paul", "Catherine", "Ryan", "Lauren", "Johnny")
+
+kable(data, digits = 4)
+```
+
+Z- and T-scores are useful in communicating a score in relation to the whole universe of scores, and/or in relation to the small number of scores that you may want to compare against for a particular purpose. In psychometrics, we can use z-scores to tell someone about their performance on an inventory or measure in relation to a large sample; when the population parameters are unknown (which, usually they are), we use a t-score to communicate a score since it controls for that bias of not knowing the population.
+
+##Part 2
+1. Create a frequency distribution for the attendance data provided. Are the attendance data normally distributed? How do you know?
+2. Based on the information you obtained in the previous step, which measure of central tendency is best to use to "summarize" the attendance data (and why)? 
+3. Based on the distribution characteristics of the attendance data, is it possible/useful to convert these raw scores into standard scores (no need to do the calculations, just look at and think about the data in order to answer this)? Why or why not (in answering this, be sure to apply what you know about the meaning and value of the normal curve and the process of deriving standard scores from raw score distributions)?
+
+```{r}
+# 1. a frequency distribution
+table(data$Attendance) %>%
+  print()
+```
+
+To me, this data appears skewed with a long left tail. That is to say, the majority of data points lie on the right side of the distribution.
+
+2. It would not be advisable to use the mean or the median, as the majority of the data is not represented by these values. Instead, use the mode, which would return 30 as it is not sensitive to outlier data.
+
+3. It would not be useful to convert these to a standard score as the standard score is dependant on the mean, which we have determined to be not useful in describing the data. Instead, a standard score based on a non-normul distribution whose parameters better model the data would be advised.
