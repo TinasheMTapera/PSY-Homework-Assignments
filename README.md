@@ -3,4 +3,5 @@ Documentation of the Rmd notebook of any assignments I can do in R.
 
 This git includes homework assignments from the following classes at Drexel University:
 
-Data Analysis I by Dr. Zoe Zhang (PSY610)
+* Data Analysis I by Dr. Zoe Zhang (PSY610)
+* Psychological Testing & Assessment by Dr. Jen Gallo (PSY380)
